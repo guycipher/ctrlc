@@ -1,5 +1,5 @@
 ## ctrlc - Clipboard logger
-ctrlc logs every copy you make while running and makes them accessible via GUI or Google Chrome extension.
+ctrlc logs every copy you make while running and makes them accessible via hosted realtime ui.
 
 #### License 
 ..
