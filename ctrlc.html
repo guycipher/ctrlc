@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ctrlc</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background: #e9f1f2;
+        color: #232424;
+        font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    }
+
+    h3 {
+        color: #24c7dc;
+        font-size: 24px;
+    }
+
+    nav {
+        width: calc(100% - 20px);
+        padding: 10px;
+        position: fixed;
+        background: #23373a;
+        color: white;
+    }
+
+    .container {
+        padding-top: 80px;
+        padding-left: 5px;
+        padding-right: 5px;
+        max-width: 688px;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    ul#copies {
+        margin-top: 10px;
+        width: calc(100% - 10px);
+        list-style: none;
+        border-left: 1px solid #0f181a;
+        border-right: 1px solid #0f181a;
+        border-top: 1px solid #0f181a;
+        -webkit-border-radius: 4px;
+        -moz-border-radius: 4px;
+        border-radius: 4px;
+    }
+
+    ul#copies li {
+        width: calc(100% - 20px);
+        color: #788c8f;
+        background: white;
+        padding: 10px;
+        border-bottom: 1px solid black;
+    }
+
+    ul#copies li pre {
+        width: 100%;
+        padding: 5px;
+        overflow: scroll
+
+    }
+
+    ul#copies li:hover {
+        color: #0f181a;
+        background: white;
+        padding: 10px;
+        border-bottom: 1px solid black;
+    }
+
+    .copy-item-time {
+        display: block;
+        width: 100%;
+        margin-bottom: 5px;
+        font-weight: bold;
+        border-bottom: 1px solid lightgray;
+    }
+
+    footer {
+        padding: 10px;
+        text-align: center;
+        font-size: 12px;
+        color: #537377;
+    }
+</style>
+</head>
+<body>
+<nav>
+<h1>ctrlc</h1>
+</nav>
+
+<div class="container">
+    <h3>Recently copied</h3>
+
+    <ul id="copies">
+
+    </ul><!--end copies--><br/>
+
+</div><!--end container-->
+
+<footer>
+    <p>Created by Alex Padula</p>
+</footer>
+</body>
+
+<script>
+    const socket = new WebSocket('ws://localhost:47222/ws');
+
+    document.addEventListener("DOMContentLoaded", function() {
+
+        let copies = document.querySelector('#copies');
+
+        let copiesArray = {{ . }} //ignore error its not even an error
+
+        let nodes = copiesArray.reverse().map(copy => {
+            let li = document.createElement('li');
+            let span = document.createElement('span');
+            let pre = document.createElement('pre');
+            const preNode = document.createTextNode(copy.Content);
+            const spanNode = document.createTextNode(moment(parseInt(copy.CopiedAt) * 1000).format('MMMM Do YYYY, h:mm:ss a'));
+            pre.appendChild(preNode)
+            span.appendChild(spanNode)
+            span.classList.add('copy-item-time');
+            li.appendChild(span)
+            li.appendChild(pre)
+
+            li.classList.add('copy-item');
+            //li.textContent = copy;
+            return li;
+        });
+
+        copies.append(...nodes);
+    })
+    // Connection opened
+    socket.addEventListener('open', (event) => {
+        socket.send('Hello CTRLC Server!');
+    });
+
+    // Listen for messages
+    socket.addEventListener('message', (event) => {
+        let copiedItems = document.querySelectorAll('.copy-item')
+        let copiesArray = []
+        copiedItems.forEach(copy => {
+            copiesSplit = copy.textContent.split(" ")
+            copiesDate = `${copiesSplit[0]} ${copiesSplit[1]} ${copiesSplit[2]} ${copiesSplit[3]} ${copiesSplit[4].slice(0,2)}`
+            copiesArray = [...copiesArray,{CopiedAt: copiesDate, Content: copy.textContent.slice(copiesDate.length,copy.textContent.length)}]
+
+            copy.remove();
+        });
+
+        let copies = document.querySelector('#copies');
+
+
+        console.log(copiesArray)
+
+
+        console.log(JSON.parse(event.data)['newCopy'])
+        copiesArray = [...copiesArray,{CopiedAt: moment(parseInt(JSON.parse(event.data)['newCopy']['CopiedAt']) * 1000).format('MMMM Do YYYY, h:mm:ss a'), Content: JSON.parse(event.data)['newCopy']['Content']}]
+
+        let nodes = copiesArray.reverse().map(copy => {
+            let li = document.createElement('li');
+            let span = document.createElement('span');
+            let pre = document.createElement('pre');
+            const preNode = document.createTextNode(copy.Content);
+            const spanNode = document.createTextNode(copy.CopiedAt);
+            pre.appendChild(preNode)
+            span.appendChild(spanNode)
+            span.classList.add('copy-item-time');
+            li.appendChild(span)
+            li.appendChild(pre)
+
+
+
+            li.classList.add('copy-item');
+            //li.textContent = copy;
+            return li;
+        });
+
+        copies.append(...nodes);
+
+    });
+</script>
+<script src="/assets/moment.min.js"></script>
+</html>
