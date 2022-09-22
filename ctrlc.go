@@ -95,6 +95,9 @@ func main() {
 	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 
 	http.HandleFunc("/ws", ws)
+
+	log.Println("Locate UI here: http://localhost:47222")
+
 	err = httpServer.ListenAndServe()
 	if err != nil {
 		log.Panicf("ERROR: %s", err)
