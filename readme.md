@@ -1,8 +1,10 @@
 ## ctrlc - Clipboard logger
+![](rdme_image.png)
+
 ctrlc logs every copy you make while running and makes them accessible via hosted realtime ui.
 
 #### License 
-..
+AGPL-3.0 license
 
 #### Author 
 Alex Padula
